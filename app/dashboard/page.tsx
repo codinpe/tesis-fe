@@ -1,11 +1,12 @@
-// src/app/dashboard/page.tsx
 "use client";
 
-import AnomalyChart from "@/components/AnomalyChart";
-import AnomalyTable from "@/components/AnomalyTable";
+import dynamic from "next/dynamic";
 import FileUpload from "@/components/FileUpload";
 import { AnomalyRow } from "@/src/lib/anomaly.mock";
 import { useState } from "react";
+
+const AnomalyChart = dynamic(() => import("@/components/AnomalyChart"), { ssr: false });
+const AnomalyTable = dynamic(() => import("@/components/AnomalyTable"), { ssr: false });
 
 export default function Dashboard() {
   const [rows, setRows] = useState<AnomalyRow[]>([]);
@@ -13,7 +14,7 @@ export default function Dashboard() {
 
   const handleFiles = async (data: AnomalyRow[]) => {
     setLoading(true);
-    setRows(data);         // ya viene procesado
+    setRows(data);
     setLoading(false);
   };
 
