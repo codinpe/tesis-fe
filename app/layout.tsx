@@ -8,7 +8,7 @@ import { Toaster } from "react-hot-toast";
 export const metadata = { title: "Accounting AML" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
+  return (  
     <html lang="es">
       <body>
         <AuthProvider>
