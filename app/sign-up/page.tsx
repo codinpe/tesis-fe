@@ -49,24 +49,24 @@ export default function SignUpPage() {
   const { logged, isInitialized, register: signup } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (isInitialized && logged) {
-      router.replace("/dashboard");
-    }
-  }, [isInitialized, logged]);
-
-  if (!isInitialized || logged) return null;
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    mode: "onChange", // muestra errores mientras se escribe
-    reValidateMode: "onChange", // vuelve a validar dinámicamente
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
-
+  
+  useEffect(() => {
+    if (isInitialized && logged) {
+      router.replace("/dashboard");
+    }
+  }, [isInitialized, logged, router]);
+  
+  if (!isInitialized || logged) return null;
+  
   const onSubmit = async (data: FormData) => {
     try {
       const payload = {
