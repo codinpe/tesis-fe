@@ -46,3 +46,25 @@ function detect(rows: any[]): AnomalyRow[] {
     return { ...r, zScore: z, isAnomaly: Math.abs(z) >= 2 };
   });
 }
+
+
+export async function parseExcelBlobToJson(blob: Blob): Promise<AnomalyRow[]> {
+  const arrayBuffer = await blob.arrayBuffer();
+  const workbook = XLSX.read(arrayBuffer, { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: 0 });
+  // detect anomalies
+  const saldoArr = rows.map(r => Number(r.Saldo_MN) || 0);
+  const mean = saldoArr.reduce((sum, v) => sum + v, 0) / saldoArr.length;
+  const variance = saldoArr.reduce((sum, v) => sum + (v - mean) ** 2, 0) / saldoArr.length;
+  const std = Math.sqrt(variance);
+  return rows.map(r => {
+    const saldo = Number(r.Saldo_MN) || 0;
+    const z = std ? (saldo - mean) / std : 0;
+    return {
+      ...r,
+      zScore: z,
+      isAnomaly: Math.abs(z) >= 2,
+    } as AnomalyRow;
+  });
+}

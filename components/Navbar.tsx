@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 "use client";
 
 import { useAuth } from "@/src/context/AuthProvider";
@@ -9,6 +8,9 @@ import { Button } from "./ui/button";
 export default function Navbar() {
   const path = usePathname();
   const { logged, logout, user } = useAuth();
+
+  const isLoginPage = path === "/login";
+  const isSignupPage = path === "/sign-up";
 
   return (
     <nav className="w-full bg-primary text-white px-4 py-3 flex items-center">
@@ -24,11 +26,20 @@ export default function Navbar() {
           </Button>
         </>
       ) : (
-        path !== "/login" && (
-          <Link href="/login" className="hover:underline">
-            Iniciar sesión
-          </Link>
-        )
+        <div className="flex items-center gap-4 text-sm">
+          {!isLoginPage && (
+            <Link href="/login" className="hover:underline">
+              Iniciar sesión
+            </Link>
+          )}
+          {!isSignupPage && (
+            <Link href="/sign-up" className="hover:underline">
+              Registrarse
+            </Link>
+          )}
+          <Link href="/forgot" className="hover:underline">Recuperar contraseña</Link>
+
+        </div>
       )}
     </nav>
   );

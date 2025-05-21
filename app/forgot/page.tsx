@@ -1,21 +1,40 @@
-// src/app/forgot/page.tsx
-"use client";
+'use client';
 
-import { recoverAPI } from "@/lib/api";
-import { useForm } from "react-hook-form";
-import { toast } from "react-hot-toast";
-import { ClipLoader } from "react-spinners";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useRouter } from 'next/navigation';
+import { ClipLoader } from 'react-spinners';
+import { toast } from 'react-hot-toast';
+import { recoverAPI } from '@/lib/api';
 
-export default function ForgotPage() {
-  const { register, handleSubmit, formState } = useForm<{ email: string }>();
-  const { errors, isSubmitting } = formState;
+const schema = z.object({
+  email: z.string().email('Correo inválido'),
+  password: z.string().min(6, 'Mínimo 6 caracteres'),
+});
 
-  const onSubmit = async (data: { email: string }) => {
+type FormData = z.infer<typeof schema>;
+
+export default function RecoverPage() {
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+  });
+
+  const onSubmit = async (data: FormData) => {
     try {
-      await recoverAPI(data.email.trim());
-      toast.success("Correo de recuperación enviado");
-    } catch {
-      toast.error("Error al enviar correo");
+      await recoverAPI(data);
+      toast.success('Contraseña actualizada con éxito');
+      router.push('/login');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al recuperar contraseña');
     }
   };
 
@@ -30,12 +49,13 @@ export default function ForgotPage() {
             <ClipLoader size={40} color="#2563eb" />
           </div>
         )}
-        <h2 className="text-2xl font-bold text-center">Recuperar Contraseña</h2>
+        <h2 className="text-2xl font-bold text-center">Recuperar contraseña</h2>
+
         <div>
           <input
             type="email"
-            placeholder="Correo corporativo"
-            {...register("email", { required: "Email obligatorio" })}
+            placeholder="Correo registrado"
+            {...register('email')}
             className="w-full border rounded px-3 py-2"
           />
           {errors.email && (
@@ -43,12 +63,24 @@ export default function ForgotPage() {
           )}
         </div>
 
+        <div>
+          <input
+            type="password"
+            placeholder="Nueva contraseña"
+            {...register('password')}
+            className="w-full border rounded px-3 py-2"
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password.message}</p>
+          )}
+        </div>
+
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-accent text-white py-2 rounded hover:opacity-90 disabled:opacity-50 transition"
+          className="w-full bg-primary text-white py-2 rounded hover:opacity-90 disabled:opacity-50 transition"
         >
-          {isSubmitting ? "Enviando..." : "Enviar correo"}
+          {isSubmitting ? 'Procesando...' : 'Actualizar'}
         </button>
       </form>
     </div>

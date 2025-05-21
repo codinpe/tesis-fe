@@ -194,21 +194,33 @@ if (lineEl) {
 
   // UI cards con Tailwind + Material
   return (
-    <div className="space-y-8 sm:space-y-0 sm:grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-      {[
-        { ref: refs.bar, title: "Bar - Saldo por RUC" },
-        { ref: refs.doughnut, title: "Doughnut - Distribución" },
-        { ref: refs.pie, title: "Pie - Registros por Usuario" },
-        { ref: refs.line, title: "Linea - Tendencia" },
-      ].map((ch, i) => (
-        <div
-          key={i}
-          className="bg-white p-4 rounded-lg shadow-md flex flex-col"
-        >
-          <h3 className="text-lg font-semibold mb-2">{ch.title}</h3>
-          <canvas ref={ch.ref} className="flex-1 w-full h-64" />
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 gap-8">
+        {/* Bar completo */}
+        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col">
+          <h3 className="text-lg font-semibold mb-2">Bar - Saldo por RUC</h3>
+          <canvas ref={refs.bar} className="flex-1 w-full h-64" />
         </div>
-      ))}
+  
+        {/* Doughnut y Pie en una fila */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col">
+            <h3 className="text-lg font-semibold mb-2">Doughnut - Distribución</h3>
+            <canvas ref={refs.doughnut} className="flex-1 w-full h-64" />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col">
+            <h3 className="text-lg font-semibold mb-2">Pie - Registros por Usuario</h3>
+            <canvas ref={refs.pie} className="flex-1 w-full h-64" />
+          </div>
+        </div>
+  
+        {/* Line completo */}
+        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col">
+          <h3 className="text-lg font-semibold mb-2">Linea - Tendencia</h3>
+          <canvas ref={refs.line} className="flex-1 w-full h-64" />
+        </div>
+      </div>
     </div>
   );
+  
 }

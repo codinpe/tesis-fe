@@ -1,22 +1,43 @@
-// src/context/AuthProvider.tsx
 "use client";
 
-import { loginAPI, recoverAPI } from "@/lib/api";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  loginAPI,
+  recoverAPI,
+  registerAPI
+} from "@/lib/api";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode
+} from "react";
 
 type AuthCtx = {
   user: { id: string; name: string; email: string } | null;
   token: string | null;
   logged: boolean;
-  login: (email: string, pass: string) => Promise<boolean>;
+  isInitialized: boolean; // ✅ nuevo
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  recover: (email: string) => Promise<void>;
+  register: (data: {
+    username: string;
+    name: string;
+    lastName: string;
+    birthdate: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+    role: string;
+  }) => Promise<boolean>;
 };
+
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthCtx["user"]>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false); // ✅
 
   // Al montar, cargamos de localStorage
   useEffect(() => {
@@ -26,14 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
+    setIsInitialized(true); // ✅ solo al final
   }, []);
 
-  const login = async (email: string, pass: string) => {
+  const login = async (username: string, password: string) => {
     try {
-      const { token: tkn, user: usr } = await loginAPI(email, pass);
+      const { token: tkn, user: usr } = await loginAPI(username, password);
       setToken(tkn);
       setUser(usr);
-      // Persistimos
       localStorage.setItem("token", tkn);
       localStorage.setItem("user", JSON.stringify(usr));
       return true;
@@ -50,17 +71,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user");
   };
 
-  const recover = (email: string) => recoverAPI(email);
+  const register = async (data: any) => {
+    try {
+      await registerAPI(data);
+      return true;
+    } catch (err) {
+      console.error("AuthProvider.register error:", err);
+      return false;
+    }
+  };
+
+  const logged = !!token;
 
   return (
     <Ctx.Provider
       value={{
         user,
         token,
-        logged: Boolean(token),
+        logged,
+        isInitialized, // ✅
         login,
         logout,
-        recover,
+        register
       }}
     >
       {children}
