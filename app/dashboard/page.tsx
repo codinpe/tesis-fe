@@ -75,7 +75,7 @@ export default function Dashboard() {
             Descargar PDF
           </button>
           <AnomalyChart rows={rows} />
-          <AnomalyTable rows={rows} />
+          {/* <AnomalyTable rows={rows} /> */}
         </>
       )}
       {!loading && rows.length === 0 && (
