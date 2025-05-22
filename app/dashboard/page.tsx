@@ -1,14 +1,19 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import FileUpload from '@/components/FileUpload';
-import { AnomalyRow } from '@/src/lib/anomaly.mock';
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/src/context/AuthProvider';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/context/AuthProvider";
+import { AnomalyRow } from "@/src/lib/anomaly.mock";
 
-const AnomalyChart = dynamic(() => import('@/components/AnomalyChart'), { ssr: false });
-const AnomalyTable = dynamic(() => import('@/components/AnomalyTable'), { ssr: false });
+import FileUpload from "@/components/FileUpload";
+
+const AnomalyChart = dynamic(() => import("@/components/AnomalyChart"), {
+  ssr: false,
+});
+const AnomalyTable = dynamic(() => import("@/components/AnomalyTable"), {
+  ssr: false,
+});
 
 export default function Dashboard() {
   const { logged, isInitialized } = useAuth();
@@ -19,22 +24,45 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (isInitialized && !logged) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [isInitialized, logged]);
 
-  // ⏳ No mostrar nada mientras aún no se sabe si está logueado
-  if (!isInitialized) return null;
-  if (!logged) return null;
+  if (!isInitialized || !logged) return null;
 
   const handleFiles = async (data: AnomalyRow[]) => {
     setLoading(true);
     setRows(data);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "https://codin-tesis-back.onrender.com/api/v1/history",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: "Reporte subido desde Dashboard",
+            report: JSON.stringify(data),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Error al guardar historial:", await response.text());
+      }
+    } catch (error) {
+      console.error("Fallo en la solicitud al historial:", error);
+    }
+
     setLoading(false);
   };
 
   return (
-    <main className="p-4 space-y-8">
+    <main className="space-y-8 p-4">
       <FileUpload onValidFiles={handleFiles} />
       {loading && <p className="text-center">Procesando…</p>}
       {!loading && rows.length > 0 && (

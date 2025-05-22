@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
-import notFoundImg from '@/public/images/not-found-plate.png'; // Reemplázalo por la imagen que quieras
 
 const NotFound = () => {
   return (

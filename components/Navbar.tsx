@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/src/context/AuthProvider";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
 export default function Navbar() {
@@ -11,7 +11,11 @@ export default function Navbar() {
 
   const isLoginPage = path === "/login";
   const isSignupPage = path === "/sign-up";
+  const router = useRouter();
 
+  const history = () => {
+    router.push("/history");
+  };
   return (
     <nav className="w-full bg-primary text-white px-4 py-3 flex items-center">
       <Link href="/" className="font-bold text-lg">
@@ -21,6 +25,9 @@ export default function Navbar() {
       {logged ? (
         <>
           <span className="mr-4">Hola, {user?.name}</span>
+          <Button onClick={history} variant="secondary">
+            Historial
+          </Button>
           <Button onClick={logout} variant="secondary">
             Salir
           </Button>
