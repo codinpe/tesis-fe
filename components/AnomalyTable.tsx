@@ -1,7 +1,6 @@
 "use client";
 
 import { AnomalyRow } from "@/src/lib/anomaly.mock";
-import { downloadReport } from "@/src/lib/report.mock";
 
 export default function AnomalyTable({ rows }: { rows: AnomalyRow[] }) {
   return (
@@ -26,12 +25,7 @@ export default function AnomalyTable({ rows }: { rows: AnomalyRow[] }) {
           ))}
         </tbody>
       </table>
-      <button
-        onClick={() => downloadReport(rows)}
-        className="mt-4 bg-primary text-white px-4 py-2 rounded hover:opacity-90"
-      >
-        Descargar PDF
-      </button>
+     
     </div>
   );
 }

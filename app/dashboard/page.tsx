@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthProvider";
 import { AnomalyRow } from "@/src/lib/anomaly.mock";
+import { downloadReport } from "@/src/lib/report.mock";
 
 import FileUpload from "@/components/FileUpload";
 
@@ -67,6 +68,12 @@ export default function Dashboard() {
       {loading && <p className="text-center">Procesando…</p>}
       {!loading && rows.length > 0 && (
         <>
+          <button
+            onClick={() => downloadReport(rows)}
+            className="mt-4 rounded bg-primary px-4 py-2 text-white hover:opacity-90"
+          >
+            Descargar PDF
+          </button>
           <AnomalyChart rows={rows} />
           <AnomalyTable rows={rows} />
         </>

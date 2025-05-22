@@ -1,4 +1,6 @@
 // src/app/page.tsx
+"use client";
+import { useAuth } from "@/src/context/AuthProvider";
 import Link from "next/link";
 import { FC } from "react";
 
@@ -36,6 +38,9 @@ const features = [
 ];
 
 const Landing: FC = () => {
+
+    const { logged, logout, user } = useAuth();
+  
   return (
     <div className="space-y-20">
       {/* Hero */}
@@ -50,7 +55,18 @@ const Landing: FC = () => {
           interactivos.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
+           {logged ? (
+        <>
           <Link
+            href="/dashboard"
+            className="bg-primary text-white px-8 py-3 rounded-md shadow-md hover:opacity-90 transition"
+          >
+            Ir al Dashboard
+          </Link>
+        </>
+      ) : (
+        <div className="flex items-center gap-4 text-sm">
+        <Link
             href="/sign-up"
             className="bg-accent text-black px-8 py-3 rounded-md shadow-md hover:shadow-lg transition"
           >
@@ -62,6 +78,10 @@ const Landing: FC = () => {
           >
             Iniciar sesión
           </Link>
+
+        </div>
+      )}
+          
         </div>
       </section>
 

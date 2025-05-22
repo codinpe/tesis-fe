@@ -18,85 +18,65 @@ export default function FileUpload({
   onValidFiles: (rows: AnomalyRow[]) => void;
 }) {
   const [hover, setHover] = useState(false);
-  const [stage, setStage] = useState<'idle' | 'processing' | 'done'>('idle');
+  const [stage, setStage] = useState<'idle' | 'uploading' | 'training' | 'done'>('idle');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
   const processFiles = useCallback(async (files: FileList) => {
-    const fileArray = Array.from(files);
-    if (fileArray.length < 3 || fileArray.length > 5) {
-      toast.error('Debes seleccionar entre 3 y 5 archivos.');
-      return;
-    }
-
-    setStage('processing');
+    setStage('uploading');
     setMetrics(null);
 
-    let lastParsedRows: AnomalyRow[] = [];
-    let lastBlob: Blob | null = null;
-    let lastMetrics: Metrics | null = null;
-
     try {
-      for (const file of fileArray) {
-        // ─── 1️⃣ Subir archivo ───────────────────────────────
-        const fd = new FormData();
-        fd.append('file', file);
-        const resProc = await fetch('https://ml-fastapi-s54j.onrender.com/process', {
-          method: 'POST',
-          body: fd,
-        });
-        const jsonProc = await resProc.json();
-        if (!resProc.ok) throw new Error(jsonProc.message || 'Error al subir archivo');
-        toast.success(`✅ "${file.name}" subido`);
+      // 1️⃣ Subir archivos
+      const fd = new FormData();
+      Array.from(files).forEach((f) => fd.append('file', f));
+      const resProc = await fetch('https://ml-fastapi-s54j.onrender.com/process', { method: 'POST', body: fd });
+      const jsonProc = await resProc.json();
+      if (!resProc.ok) throw new Error(jsonProc.message || 'Error al subir archivos');
+      toast.success(`✅ ${files.length} archivo(s) subido(s)`);
 
-        // ─── 2️⃣ Entrenar modelo ────────────────────────────
-        const resTrain = await fetch('https://ml-fastapi-s54j.onrender.com/train-model', {
-          method: 'POST',
-        });
-        const jsonTrain = await resTrain.json();
-        if (!resTrain.ok) throw new Error(jsonTrain.message || 'Error al entrenar modelo');
-        lastMetrics = {
-          accuracy: jsonTrain.accuracy,
-          precision: jsonTrain.precision,
-          recall: jsonTrain.recall,
-          f1: jsonTrain.f1,
-        };
-
-        // ─── 3️⃣ Descargar Excel ────────────────────────────
-        const resDl = await fetch('https://ml-fastapi-s54j.onrender.com/download-excel');
-        if (!resDl.ok) throw new Error('Error al descargar Excel');
-        const blob = await resDl.blob();
-        lastBlob = blob;
-
-        // ─── Parsear a JSON ───────────────────────────────────
-        const parsed = await parseExcelBlobToJson(blob);
-        lastParsedRows = parsed;
+      // Opcional: manejo inicial de filas si vienen en la respuesta
+      if (jsonProc.data) {
+        onValidFiles(jsonProc.data as AnomalyRow[]);
       }
 
-      // Solo utilizamos el resultado del ÚLTIMO archivo
-      if (lastParsedRows.length) {
-        onValidFiles(lastParsedRows);
-      }
+      // 2️⃣ Entrenar modelo
+      setStage('training');
+      const resTrain = await fetch('https://ml-fastapi-s54j.onrender.com/train-model', { method: 'POST' });
+      const jsonTrain = await resTrain.json();
+      if (!resTrain.ok) throw new Error(jsonTrain.message || 'Error al entrenar modelo');
 
-      if (lastMetrics) {
-        setMetrics(lastMetrics);
-      }
+      const m: Metrics = {
+        accuracy: jsonTrain.accuracy,
+        precision: jsonTrain.precision,
+        recall: jsonTrain.recall,
+        f1: jsonTrain.f1,
+      };
+      setMetrics(m);
+      toast.success('🏆 Modelo entrenado correctamente');
 
-      // Descargar Excel final para el usuario
-      if (lastBlob) {
-        const url = window.URL.createObjectURL(lastBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'reporte.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      }
+      // 3️⃣ Descargar y parsear Excel a JSON
+      const resDl = await fetch('https://ml-fastapi-s54j.onrender.com/download-excel');
+      if (!resDl.ok) throw new Error('Error al descargar Excel');
+      const blob = await resDl.blob();
+
+      // Aquí es donde llamas a parseExcelBlobToJson:
+      const parsedRows = await parseExcelBlobToJson(blob);
+      onValidFiles(parsedRows);
+
+      // Descargar archivo para el usuario (opcional)
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
       setStage('done');
     } catch (err: any) {
       console.error('FileUpload error:', err);
-      toast.error(err.message || 'Error en el procesamiento');
+      toast.error(err.message);
       setStage('idle');
     }
   }, [onValidFiles]);
@@ -111,7 +91,7 @@ export default function FileUpload({
     if (e.target.files?.length) processFiles(e.target.files);
   };
 
-  const isBusy = stage === 'processing';
+  const isBusy = stage === 'uploading' || stage === 'training';
 
   return (
     <div>
@@ -127,7 +107,9 @@ export default function FileUpload({
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg z-10">
             <div className="flex flex-col items-center gap-2">
               <ClipLoader size={48} color="#2563eb" />
-              <span className="text-gray-700">Procesando archivos…</span>
+              <span className="text-gray-700">
+                {stage === 'uploading' ? 'Subiendo archivos...' : 'Entrenando modelo...'}
+              </span>
             </div>
           </div>
         )}

@@ -18,20 +18,20 @@ export default function Navbar() {
   };
   return (
     <nav className="w-full bg-primary text-white px-4 py-3 flex items-center">
-      <Link href="/" className="font-bold text-lg">
-        Accounting AML
+      <Link href="/dashboard" className="font-bold text-lg">
+        DTECTA-PYME
       </Link>
       <div className="flex-1" />
       {logged ? (
-        <>
-          <span className="mr-4">Hola, {user?.name}</span>
+        <div className="flex items-center gap-4 text-sm">
+          <span className="mr-4 ">Hola, {user?.name}</span>
           <Button onClick={history} variant="secondary">
             Historial
           </Button>
           <Button onClick={logout} variant="secondary">
             Salir
           </Button>
-        </>
+        </div>
       ) : (
         <div className="flex items-center gap-4 text-sm">
           {!isLoginPage && (
