@@ -48,19 +48,6 @@ export default function FileUpload({
         if (!resProc.ok) throw new Error(jsonProc.message || 'Error al subir archivo');
         toast.success(`✅ "${file.name}" subido`);
 
-        // ─── 2️⃣ Entrenar modelo ────────────────────────────
-        const resTrain = await fetch('https://ml-fastapi-s54j.onrender.com/train-model', {
-          method: 'POST',
-        });
-        const jsonTrain = await resTrain.json();
-        if (!resTrain.ok) throw new Error(jsonTrain.message || 'Error al entrenar modelo');
-        lastMetrics = {
-          accuracy: jsonTrain.accuracy,
-          precision: jsonTrain.precision,
-          recall: jsonTrain.recall,
-          f1: jsonTrain.f1,
-        };
-
         // ─── 3️⃣ Descargar Excel ────────────────────────────
         const resDl = await fetch('https://ml-fastapi-s54j.onrender.com/download-excel');
         if (!resDl.ok) throw new Error('Error al descargar Excel');
